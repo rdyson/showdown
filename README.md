@@ -7,18 +7,12 @@ Compare job offer salary progressions side-by-side, with take-home pay calculate
 ## What it does
 
 - Add up to 4 job offers with year-by-year salaries
-- See gross, income tax, NI, and take-home for each year
+- 🇬🇧/🇺🇸 toggle — UK (2025/26) and US (2024) tax calculations
+- US supports filing status (single / married filing jointly) and 10 state tax brackets
 - Cumulative comparison table with the leader highlighted
 - Crossover detection ("Job B overtakes Job A in Year 3")
 - Line chart showing cumulative take-home over time
 - Share via URL — the entire state is encoded in the hash
-
-## UK Tax (2025/26)
-
-- Income tax: Personal Allowance £12,570, Basic 20%, Higher 40%, Additional 45%
-- PA tapering above £100k (£1 per £2, zero at £125,140)
-- Employee NI: 8% (£12,571–£50,270), 2% above
-- England/Wales/NI only (Scotland bands not yet included)
 
 ## Tech
 
