@@ -113,7 +113,8 @@ export function calcUS(gross, filingStatus, stateCode) {
   const federal = Math.round(calcBrackets(taxableIncome, fed.brackets));
 
   const ss = Math.min(gross, 168600) * 0.062;
-  const medicare = gross * 0.0145 + Math.max(0, gross - 200000) * 0.009;
+  const medicareSurtaxThreshold = filingStatus === 'mfj' ? 250000 : 200000;
+  const medicare = gross * 0.0145 + Math.max(0, gross - medicareSurtaxThreshold) * 0.009;
   const fica = Math.round(ss + medicare);
 
   const stDef = US_STATE_TAX[stateCode] || US_STATE_TAX.none;

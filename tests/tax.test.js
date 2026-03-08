@@ -146,6 +146,20 @@ describe('calcUS', () => {
       // FICA identical (not affected by filing status)
       expect(mfj.fica).toBe(single.fica);
     });
+
+    it('$210,000 — MFJ not surtaxed (threshold $250k), Single is (threshold $200k)', () => {
+      const mfj = calcUS(210000, 'mfj', 'none');
+      const single = calcUS(210000, 'single', 'none');
+      // MFJ: no Medicare surtax yet (below $250k threshold)
+      const expectedMfjMedicare = Math.round(210000 * 0.0145);
+      const expectedSS = Math.round(Math.min(210000, 168600) * 0.062);
+      expect(mfj.fica).toBe(expectedSS + expectedMfjMedicare);
+      // Single: Medicare surtax applies on $10k above $200k threshold
+      const expectedSingleMedicare = Math.round(210000 * 0.0145 + 10000 * 0.009);
+      expect(single.fica).toBe(expectedSS + expectedSingleMedicare);
+      // MFJ pays less FICA than Single in this band
+      expect(mfj.fica).toBeLessThan(single.fica);
+    });
   });
 
   describe('state tax', () => {
