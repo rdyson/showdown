@@ -61,6 +61,31 @@ bash serve.sh
 
 Open http://localhost:8080
 
+## Tests
+
+The tax calculation logic lives in `src/tax.js` as pure ES module functions. 74 tests cover real-world salary scenarios, bracket boundaries, edge cases, and app logic.
+
+```bash
+npm install
+npm test
+```
+
+For coverage:
+
+```bash
+npm run test:coverage
+```
+
+**What's tested:**
+
+- UK tax: basic rate, higher rate, PA taper zone (£100k–£125,140), additional rate (45%), high earner edge cases
+- US federal: all bracket boundaries, Single vs MFJ, Medicare surtax (correctly applied at $200k for Single, $250k for MFJ), SS wage cap
+- US state tax: CA, NY, and flat-rate states (IL, PA etc.) vs no-state-tax
+- App logic: crossover detection, cumulative totals, leader tracking, URL hash round-trip, legacy hash format
+- Edge cases: zero gross, null/blank input, negative values, 4 jobs × 5 years
+
+`src/tax.js` has 100% line, branch, and function coverage.
+
 ## License
 
 MIT
