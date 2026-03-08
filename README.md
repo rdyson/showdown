@@ -2,7 +2,7 @@
 
 Compare job offer salary progressions side-by-side, with take-home pay calculated live.
 
-**Live:** [showdown.rdyson.dev](https://showdown.rdyson.dev)
+**Live:** [showdown.run](https://showdown.run)
 
 ## What it does
 
@@ -48,22 +48,38 @@ To verify no drift:
 npm run check:val
 ```
 
-## Custom domain (Cloudflare Worker)
+## Custom domain (optional — Cloudflare Worker)
 
-`showdown.rdyson.dev` is proxied to the Val Town URL via a Cloudflare Worker, avoiding the need for a Val Town Pro account.
+Val Town doesn't support custom domains on the free plan. If you want your val served at your own domain, you can proxy it through a Cloudflare Worker for free (Cloudflare Workers free tier: 100,000 requests/day).
 
 ```
-showdown.rdyson.dev → Cloudflare Worker → val.run upstream
+your-domain.com → Cloudflare Worker → val.run upstream
 ```
 
-Requires the [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) and a Cloudflare account with the domain configured.
+The Worker rewrites the `Host` header to match your val's `val.run` URL, which Val Town needs to route the request correctly. A plain DNS CNAME won't work because Val Town uses SNI routing on the full subdomain.
 
-```bash
-npx wrangler login
-npx wrangler deploy
-```
+### Setup
+
+1. Add your domain to [Cloudflare](https://dash.cloudflare.com) and point your registrar's nameservers at Cloudflare
+2. In `worker.js`, confirm `UPSTREAM` matches your val's `web.val.run` URL
+3. In `wrangler.toml`, set your domain in the `routes` array:
+   ```toml
+   routes = [
+     { pattern = "your-domain.com", custom_domain = true }
+   ]
+   ```
+4. In your Cloudflare account settings, note your **Account ID** and set it in `wrangler.toml`
+5. Deploy:
+   ```bash
+   npx wrangler login
+   npx wrangler deploy
+   ```
 
 To update the upstream URL, edit `UPSTREAM` in `worker.js` and redeploy.
+
+### Automated deploy
+
+If you've set up the CI pipeline (see below), the Worker is redeployed automatically on every push to `main` — no manual step needed.
 
 ## Run locally
 
