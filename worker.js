@@ -1,8 +1,15 @@
 const UPSTREAM = "https://rdyson--7ddb868a18ad11f18c9d42dde27851f2.web.val.run";
+const PRIMARY = "https://showdown.run";
 
 export default {
   async fetch(request) {
     const url = new URL(request.url);
+
+    // Redirect legacy domain → primary
+    if (url.hostname === "showdown.rdyson.dev") {
+      return Response.redirect(PRIMARY + url.pathname + url.search, 301);
+    }
+
     const upstreamUrl = UPSTREAM + url.pathname + url.search;
 
     const headers = new Headers(request.headers);

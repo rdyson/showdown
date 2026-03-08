@@ -4,5 +4,6 @@ compatibility_date = "2024-01-01"
 account_id = "e1c7770c3e49a3a72eb4d6be53588fb0"
 
 routes = [
+  { pattern = "showdown.run", custom_domain = true },
   { pattern = "showdown.rdyson.dev", custom_domain = true }
 ]

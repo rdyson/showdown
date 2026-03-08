@@ -7,10 +7,12 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "build:val": "node scripts/sync-val.mjs",
-    "check:val": "node scripts/sync-val.mjs --check"
+    "check:val": "node scripts/sync-val.mjs --check",
+    "deploy:val": "node scripts/deploy-val.mjs"
   },
   "devDependencies": {
-    "vitest": "^3.0.0",
-    "@vitest/coverage-v8": "^3.0.0"
+    "@valtown/sdk": "^0.35.0",
+    "@vitest/coverage-v8": "^3.0.0",
+    "vitest": "^3.0.0"
   }
 }

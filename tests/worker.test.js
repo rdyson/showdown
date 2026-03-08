@@ -6,7 +6,7 @@ describe('worker proxy', () => {
     vi.restoreAllMocks();
   });
 
-  it('proxies GET requests and strips set-cookie from response headers', async () => {
+  it('proxies GET requests on showdown.run and strips set-cookie', async () => {
     const upstreamResponse = new Response('ok', {
       status: 200,
       headers: {
@@ -16,7 +16,7 @@ describe('worker proxy', () => {
     });
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(upstreamResponse);
 
-    const req = new Request('https://showdown.rdyson.dev/path?q=1', { method: 'GET' });
+    const req = new Request('https://showdown.run/path?q=1', { method: 'GET' });
     const res = await worker.fetch(req);
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -33,11 +33,11 @@ describe('worker proxy', () => {
     expect(await res.text()).toBe('ok');
   });
 
-  it('forwards request body for non-GET/HEAD methods', async () => {
+  it('forwards request body for non-GET/HEAD methods on showdown.run', async () => {
     const upstreamResponse = new Response('created', { status: 201 });
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(upstreamResponse);
 
-    const req = new Request('https://showdown.rdyson.dev/api', {
+    const req = new Request('https://showdown.run/api', {
       method: 'POST',
       body: 'payload',
       headers: { 'content-type': 'text/plain' },
@@ -49,5 +49,17 @@ describe('worker proxy', () => {
     expect(init.body).toBe(req.body);
     expect(res.status).toBe(201);
     expect(await res.text()).toBe('created');
+  });
+
+  it('redirects showdown.rdyson.dev to showdown.run with 301', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+
+    const req = new Request('https://showdown.rdyson.dev/some/path?x=1', { method: 'GET' });
+    const res = await worker.fetch(req);
+
+    // Should redirect, not proxy
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(res.status).toBe(301);
+    expect(res.headers.get('location')).toBe('https://showdown.run/some/path?x=1');
   });
 });
