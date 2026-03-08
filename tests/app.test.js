@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { calcUK, calcUS, COLORS } from '../src/tax.js';
 
 // ─── Minimal showdown() stub ─────────────────────────────────────────────────
@@ -38,7 +38,9 @@ function createApp(overrides = {}) {
 
     cumForYear(offer, yi) {
       const c = this.cumulative(offer);
-      return c[yi] || 0;
+      if (yi < 0) return 0;
+      if (yi < c.length) return c[yi] || 0;
+      return c.length ? c[c.length - 1] : 0;
     },
 
     get maxYears() {
@@ -63,15 +65,19 @@ function createApp(overrides = {}) {
         for (let j = i + 1; j < this.offers.length; j++) {
           const a = this.cumulative(this.offers[i]);
           const b = this.cumulative(this.offers[j]);
-          for (let y = 1; y < n; y++) {
-            const pA = a[y-1] || 0, pB = b[y-1] || 0;
-            const cA = a[y] || 0, cB = b[y] || 0;
-            if ((pA === 0 && pB === 0) || (cA === 0 && cB === 0)) continue;
-            if ((pA - pB) * (cA - cB) < 0) {
-              const winner = cA > cB ? this.offers[i] : this.offers[j];
-              const loser = cA > cB ? this.offers[j] : this.offers[i];
+          let lastNonZeroDiff = null;
+          for (let y = 0; y < n; y++) {
+            const cA = y < a.length ? a[y] : (a.length ? a[a.length - 1] : 0);
+            const cB = y < b.length ? b[y] : (b.length ? b[b.length - 1] : 0);
+            if (cA === 0 && cB === 0) continue;
+            const diff = cA - cB;
+            if (diff === 0) continue;
+            if (lastNonZeroDiff !== null && Math.sign(diff) !== Math.sign(lastNonZeroDiff)) {
+              const winner = diff > 0 ? this.offers[i] : this.offers[j];
+              const loser = diff > 0 ? this.offers[j] : this.offers[i];
               msgs.push(`${winner.name} overtakes ${loser.name} cumulatively in Year ${y + 1}`);
             }
+            lastNonZeroDiff = diff;
           }
         }
       }
@@ -160,6 +166,16 @@ describe('crossover detection', () => {
     const app = createApp();
     expect(app.crossovers).toEqual([]);
   });
+
+  it('detects crossover after an intermediate tie year', () => {
+    const app = createApp();
+    app.country = 'UK';
+    app.offers = [
+      { name: 'Job A', color: COLORS[0], years: [{ gross: 60000 }, { gross: 30000 }, { gross: 0 }] },
+      { name: 'Job B', color: COLORS[1], years: [{ gross: 30000 }, { gross: 60000 }, { gross: 10 }] },
+    ];
+    expect(app.crossovers.some(m => m.includes('Job B overtakes Job A cumulatively in Year 3'))).toBe(true);
+  });
 });
 
 // ─── Cumulative totals ───────────────────────────────────────────────────────
@@ -212,7 +228,18 @@ describe('cumulative totals', () => {
     const offer = { name: 'Test', color: COLORS[0], years: [{ gross: 30000 }] };
     app.offers = [offer];
     expect(app.cumForYear(offer, 0)).toBe(25120);
-    expect(app.cumForYear(offer, 5)).toBe(0); // out of bounds
+    expect(app.cumForYear(offer, 5)).toBe(25120);
+  });
+
+  it('cumForYear carries forward final cumulative value for shorter offers', () => {
+    const app = createApp();
+    app.country = 'UK';
+    const short = { name: 'Short', color: COLORS[0], years: [{ gross: 30000 }] };
+    const long = { name: 'Long', color: COLORS[1], years: [{ gross: 10000 }, { gross: 10000 }, { gross: 10000 }] };
+    app.offers = [short, long];
+    expect(app.maxYears).toBe(3);
+    expect(app.cumForYear(short, 2)).toBe(25120);
+    expect(app.cumForYear(short, -1)).toBe(0);
   });
 });
 

@@ -657,7 +657,9 @@
 
         cumForYear(offer, yi) {
           const c = this.cumulative(offer);
-          return c[yi] || 0;
+          if (yi < 0) return 0;
+          if (yi < c.length) return c[yi] || 0;
+          return c.length ? c[c.length - 1] : 0;
         },
 
         get maxYears() {
@@ -682,15 +684,19 @@
             for (let j = i + 1; j < this.offers.length; j++) {
               const a = this.cumulative(this.offers[i]);
               const b = this.cumulative(this.offers[j]);
-              for (let y = 1; y < n; y++) {
-                const pA = a[y-1] || 0, pB = b[y-1] || 0;
-                const cA = a[y] || 0, cB = b[y] || 0;
-                if ((pA === 0 && pB === 0) || (cA === 0 && cB === 0)) continue;
-                if ((pA - pB) * (cA - cB) < 0) {
-                  const winner = cA > cB ? this.offers[i] : this.offers[j];
-                  const loser = cA > cB ? this.offers[j] : this.offers[i];
+              let lastNonZeroDiff = null;
+              for (let y = 0; y < n; y++) {
+                const cA = y < a.length ? a[y] : (a.length ? a[a.length - 1] : 0);
+                const cB = y < b.length ? b[y] : (b.length ? b[b.length - 1] : 0);
+                if (cA === 0 && cB === 0) continue;
+                const diff = cA - cB;
+                if (diff === 0) continue;
+                if (lastNonZeroDiff !== null && Math.sign(diff) !== Math.sign(lastNonZeroDiff)) {
+                  const winner = diff > 0 ? this.offers[i] : this.offers[j];
+                  const loser = diff > 0 ? this.offers[j] : this.offers[i];
                   msgs.push(`${winner.name} overtakes ${loser.name} cumulatively in Year ${y + 1}`);
                 }
+                lastNonZeroDiff = diff;
               }
             }
           }

@@ -1,6 +1,9 @@
-export default async function(req: Request): Promise<Response> {
-  const html = `
-<!DOCTYPE html>
+// AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY.
+// Source: index.html
+
+export default async function(_req: Request): Promise<Response> {
+  return new Response(
+`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -542,7 +545,8 @@ export default async function(req: Request): Promise<Response> {
 
       // FICA
       const ss = Math.min(gross, 168600) * 0.062;
-      const medicare = gross * 0.0145 + Math.max(0, gross - 200000) * 0.009;
+      const medicareSurtaxThreshold = filingStatus === 'mfj' ? 250000 : 200000;
+      const medicare = gross * 0.0145 + Math.max(0, gross - medicareSurtaxThreshold) * 0.009;
       const fica = Math.round(ss + medicare);
 
       // State tax
@@ -658,7 +662,9 @@ export default async function(req: Request): Promise<Response> {
 
         cumForYear(offer, yi) {
           const c = this.cumulative(offer);
-          return c[yi] || 0;
+          if (yi < 0) return 0;
+          if (yi < c.length) return c[yi] || 0;
+          return c.length ? c[c.length - 1] : 0;
         },
 
         get maxYears() {
@@ -683,15 +689,19 @@ export default async function(req: Request): Promise<Response> {
             for (let j = i + 1; j < this.offers.length; j++) {
               const a = this.cumulative(this.offers[i]);
               const b = this.cumulative(this.offers[j]);
-              for (let y = 1; y < n; y++) {
-                const pA = a[y-1] || 0, pB = b[y-1] || 0;
-                const cA = a[y] || 0, cB = b[y] || 0;
-                if ((pA === 0 && pB === 0) || (cA === 0 && cB === 0)) continue;
-                if ((pA - pB) * (cA - cB) < 0) {
-                  const winner = cA > cB ? this.offers[i] : this.offers[j];
-                  const loser = cA > cB ? this.offers[j] : this.offers[i];
+              let lastNonZeroDiff = null;
+              for (let y = 0; y < n; y++) {
+                const cA = y < a.length ? a[y] : (a.length ? a[a.length - 1] : 0);
+                const cB = y < b.length ? b[y] : (b.length ? b[b.length - 1] : 0);
+                if (cA === 0 && cB === 0) continue;
+                const diff = cA - cB;
+                if (diff === 0) continue;
+                if (lastNonZeroDiff !== null && Math.sign(diff) !== Math.sign(lastNonZeroDiff)) {
+                  const winner = diff > 0 ? this.offers[i] : this.offers[j];
+                  const loser = diff > 0 ? this.offers[j] : this.offers[i];
                   msgs.push(\`\${winner.name} overtakes \${loser.name} cumulatively in Year \${y + 1}\`);
                 }
+                lastNonZeroDiff = diff;
               }
             }
           }
@@ -843,11 +853,9 @@ export default async function(req: Request): Promise<Response> {
 
 </body>
 </html>
-`;
-  return new Response(html, {
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
-    },
-  });
+`,
+    {
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    }
+  );
 }

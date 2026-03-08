@@ -16,7 +16,7 @@ Compare job offer salary progressions side-by-side, with take-home pay calculate
 
 ## Tech
 
-Single self-contained HTML file. No build step, no backend.
+Single self-contained HTML source file, with a generated Val Town deploy wrapper (`val.ts`). No backend.
 
 - [Alpine.js](https://alpinejs.dev/) — reactive UI
 - [Chart.js](https://www.chartjs.org/) — cumulative earnings chart
@@ -25,14 +25,28 @@ Single self-contained HTML file. No build step, no backend.
 
 ## Deploy to Val Town
 
-1. Sign up at [val.town](https://val.town)
-2. Click **New** → **HTTP**
-3. Name it (e.g. `showdown`)
-4. Copy the contents of [`val.ts`](./val.ts) into the editor
-5. Click **Save**
-6. Your app is live at the URL Val Town gives you
+`index.html` is the source of truth. `val.ts` is generated from it.
 
-`val.ts` wraps `index.html` in a Val Town HTTP handler — it's the same app, just served as a Response.
+1. Install the Val Town CLI (`vt`) and authenticate
+2. Create/clone your Val Town project locally (one-time)
+3. In one terminal, sync local changes to Val Town:
+   ```bash
+   vt watch
+   ```
+4. Generate deploy file from source:
+   ```bash
+   npm run build:val
+   ```
+5. Edit [`index.html`](./index.html), then regenerate:
+   ```bash
+   npm run build:val
+   ```
+
+To verify no drift:
+
+```bash
+npm run check:val
+```
 
 ## Custom domain (Cloudflare Worker)
 
@@ -63,7 +77,7 @@ Open http://localhost:8080
 
 ## Tests
 
-The tax calculation logic lives in `src/tax.js` as pure ES module functions. 74 tests cover real-world salary scenarios, bracket boundaries, edge cases, and app logic.
+The tax calculation logic lives in `src/tax.js` as pure ES module functions. Tests cover real-world salary scenarios, bracket boundaries, edge cases, app logic, and worker proxy behavior.
 
 ```bash
 npm install
@@ -74,6 +88,13 @@ For coverage:
 
 ```bash
 npm run test:coverage
+```
+
+To run full local checks before deploy:
+
+```bash
+npm run check:val
+npm test
 ```
 
 **What's tested:**

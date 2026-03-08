@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "build:val": "node scripts/sync-val.mjs",
+    "check:val": "node scripts/sync-val.mjs --check"
   },
   "devDependencies": {
     "vitest": "^3.0.0",
