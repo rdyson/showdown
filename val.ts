@@ -72,6 +72,16 @@ export default async function(_req: Request): Promise<Response> {
           <button @click="country = 'US'" :class="{ active: country === 'US' }">🇺🇸</button>
         </div>
 
+        <!-- Clear -->
+        <button @click="clearAll()" x-show="hasData"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-500 hover:text-gray-300 text-sm transition-all"
+          title="Clear all data">
+          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          <span class="hidden sm:inline">Clear</span>
+        </button>
+
         <!-- Share -->
         <button @click="copyShareUrl()"
           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all"
@@ -595,7 +605,12 @@ export default async function(_req: Request): Promise<Response> {
 
         // ── Lifecycle ──────────────────────────────────────────────────────
         init() {
-          this.loadFromHash();
+          const hasHash = location.hash && location.hash.length > 3;
+          if (hasHash) {
+            this.loadFromHash();
+          } else {
+            this.loadExample();
+          }
           this.$nextTick(() => this._renderChart());
 
           this.$watch('offers', () => {
@@ -780,6 +795,32 @@ export default async function(_req: Request): Promise<Response> {
               }
             }
           });
+        },
+
+        // ── Example & reset ────────────────────────────────────────────────
+        loadExample() {
+          this.country = 'UK';
+          this.filingStatus = 'single';
+          this.usState = 'none';
+          this.offers = [
+            { name: 'Corp job', color: COLORS[0], years: [
+              { gross: 60000 }, { gross: 60000 }, { gross: 60000 }, { gross: 60000 }
+            ]},
+            { name: 'Startup', color: COLORS[1], years: [
+              { gross: 44000 }, { gross: 58000 }, { gross: 76000 }, { gross: 88000 }
+            ]},
+          ];
+        },
+
+        clearAll() {
+          this.country = 'UK';
+          this.filingStatus = 'single';
+          this.usState = 'none';
+          this.offers = [
+            { name: 'Job A', color: COLORS[0], years: [{ gross: '' }] },
+            { name: 'Job B', color: COLORS[1], years: [{ gross: '' }] },
+          ];
+          history.replaceState(null, '', window.location.pathname);
         },
 
         // ── State persistence ──────────────────────────────────────────────
