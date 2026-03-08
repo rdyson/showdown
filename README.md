@@ -50,7 +50,7 @@ npm run check:val
 
 ## Custom domain (optional — Cloudflare Worker)
 
-Val Town doesn't support custom domains on the free plan. If you want your val served at your own domain, you can proxy it through a Cloudflare Worker for free (Cloudflare Workers free tier: 100,000 requests/day).
+If you want your val served at your own domain, you can proxy it through a Cloudflare Worker for free (Cloudflare Workers free tier: 100,000 requests/day).
 
 ```
 your-domain.com → Cloudflare Worker → val.run upstream
